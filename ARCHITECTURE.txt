@@ -1,0 +1,23 @@
+
+SYSTEM FLOW (HIGH LEVEL)
+
+[ User ]
+   |
+   v
+[ DCK Dashboard (React/Vite) ]
+   |
+   | REST / WS
+   v
+[ FastAPI Backend ]
+   |
+   | RPC / Indexing
+   v
+[ Solana + QuickNode ]
+   |
+   | Events / Wallets / Curves
+   v
+[ XIE Engine ]
+   |
+   | Scores / Flags
+   v
+[ UI + Digital TCG Unlocks ]

@@ -1,0 +1,27 @@
+.trading-terminal-container {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 90px 1fr 340px;
+  background: #03040A;
+}
+
+/* Row 1 – Tape */
+.row-tape {
+  border-bottom: 2px solid rgba(0, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+/* Row 2 – Chart */
+.row-chart {
+  border-bottom: 2px solid rgba(255, 0, 255, 0.15);
+  overflow: hidden;
+}
+
+/* Row 3 – Info + Actions */
+.row-bottom {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+  padding: 16px;
+}

@@ -1,0 +1,688 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-pink: #FF41D6;
+  --color-neon-cyan: #00F5FF;
+  --color-neon-purple: #A855F7;
+  --color-dark-bg: #0a0d11;
+  --color-dark-surface: #0d1117;
+  --font-family-orbitron: Orbitron, sans-serif;
+}
+
+/* Global Utilities */
+.gradient-text-cyan-pink {
+  background: linear-gradient(135deg, #00F5FF 0%, #FF41D6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-pink-purple {
+  background: linear-gradient(135deg, #FF41D6 0%, #A855F7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.8), 0 0 20px rgba(0, 245, 255, 0.4);
+}
+
+.text-glow-pink {
+  text-shadow: 0 0 10px rgba(255, 65, 214, 0.8), 0 0 20px rgba(255, 65, 214, 0.4);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Button Neon Pulse */
+.btn-neon {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-neon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 245, 255, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-neon:hover::before {
+  opacity: 1;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.btn-neon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.6), 0 0 40px rgba(255, 65, 214, 0.4);
+}
+
+/* Card Hover Glow (Desktop Only) */
+@media (min-width: 768px) {
+  .card-hover-glow {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.5), rgba(255, 65, 214, 0.5));
+    opacity: 0;
+    z-index: -1;
+    filter: blur(10px);
+    transition: opacity 0.3s ease;
+  }
+  
+  .card-hover-glow:hover::before {
+    opacity: 0.6;
+  }
+  
+  .card-hover-glow:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 245, 255, 0.3);
+  }
+}
+
+/* DCK Aura Border (Graduated Coins) */
+.dck-aura-border {
+  position: relative;
+  border: 2px solid transparent;
+  background: 
+    linear-gradient(#0a0d11, #0a0d11) padding-box,
+    linear-gradient(135deg, #FFD700, #FFA500, #FFD700) border-box;
+  animation: goldPulse 2s ease-in-out infinite;
+}
+
+.dck-aura-border::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  filter: blur(12px);
+  z-index: -1;
+  opacity: 0.8;
+  animation: goldPulse 2s ease-in-out infinite;
+}
+
+/* Soft Panel Shadow */
+.panel-shadow {
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3), 
+    0 2px 4px rgba(0, 245, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.panel-shadow-hover {
+  box-shadow: 
+    0 8px 12px rgba(0, 0, 0, 0.4), 
+    0 4px 8px rgba(0, 245, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Slide-in Animations for New Coins */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.coin-appear {
+  animation: slideInFromRight 0.4s ease-out;
+}
+
+/* Scanline Effect */
+.scanline-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.6), transparent);
+  animation: scanline 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Neon Border Variants */
+.border-neon-cyan {
+  border-color: #00F5FF;
+  box-shadow: 0 0 5px rgba(0, 245, 255, 0.5), inset 0 0 5px rgba(0, 245, 255, 0.2);
+}
+
+.border-neon-pink {
+  border-color: #FF41D6;
+  box-shadow: 0 0 5px rgba(255, 65, 214, 0.5), inset 0 0 5px rgba(255, 65, 214, 0.2);
+}
+
+.border-neon-purple {
+  border-color: #A855F7;
+  box-shadow: 0 0 5px rgba(168, 85, 247, 0.5), inset 0 0 5px rgba(168, 85, 247, 0.2);
+}
+
+.border-neon-gold {
+  border-color: #FFD700;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5), inset 0 0 5px rgba(255, 215, 0, 0.2);
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-cyber {
+  background: linear-gradient(135deg, rgba(0, 245, 255, 0.1) 0%, rgba(255, 65, 214, 0.1) 100%);
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(180deg, #0a0d11 0%, #0d1117 50%, rgba(168, 85, 247, 0.05) 100%);
+}
+
+/* Enhanced Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 245, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00F5FF 0%, #FF41D6 100%);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.8), 0 0 20px rgba(255, 65, 214, 0.5);
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+body {
+  background-color: var(--color-dark-bg);
+  color: var(--color-neon-cyan);
+  font-family: var(--font-family-orbitron);
+  text-align: center;
+  padding: 2rem;
+}
+
+h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-neon-pink);
+  filter: drop-shadow(0 0 8px #ff00aa);
+}
+
+/* Graffiti Headers */
+h1, h2, h3, .title-graffiti {
+  font-family: 'Rubik Glitch', cursive;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #2FD9FF 0%, #FF41D6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow:
+    0 0 1px #2FD9FF,
+    0 0 5px rgba(47,217,255,0.5),
+    0 0 8px rgba(255,65,214,0.3);
+}
+
+p {
+  font-size: 1.125rem;
+  color: var(--color-neon-cyan);
+  filter: drop-shadow(0 0 6px #00ffff);
+}
+
+:root {
+  --color-primary: #ff00ff;
+  --color-secondary: #00ffff;
+  --color-background: #0D1117;
+  --color-surface: #1A1B26;
+  --color-text: #ffffff;
+  --neon-cyan: #2FD9FF;
+  --neon-pink: #FF41D6;
+  --neon-green: #39FF14;
+  --neon-orange: #FF9500;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* Dripping Graffiti Text Effect */
+.graffiti-text {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--neon-cyan);
+  text-shadow: 
+    0 0 10px var(--neon-cyan),
+    0 0 20px var(--neon-cyan),
+    0 0 30px var(--neon-cyan),
+    0 5px 0 rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.graffiti-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  height: 20px;
+  overflow: hidden;
+  color: var(--neon-cyan);
+  opacity: 0.7;
+  filter: blur(2px);
+  transform: scaleY(0.6);
+  transform-origin: top;
+}
+
+/* Neon Glow Animation */
+@keyframes neon-glow {
+  0%, 100% {
+    text-shadow: 
+      0 0 10px var(--neon-cyan),
+      0 0 20px var(--neon-cyan),
+      0 0 30px var(--neon-cyan),
+      0 0 40px var(--neon-cyan);
+  }
+  50% {
+    text-shadow: 
+      0 0 5px var(--neon-cyan),
+      0 0 10px var(--neon-cyan),
+      0 0 15px var(--neon-cyan),
+      0 0 20px var(--neon-cyan);
+  }
+}
+
+.neon-glow {
+  animation: neon-glow 2s ease-in-out infinite;
+}
+
+/* Cyberpunk Pulse */
+@keyframes cyber-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+.cyber-pulse {
+  animation: cyber-pulse 2s ease-in-out infinite;
+}
+
+/* Glitch Effect */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.glitch-effect {
+  animation: glitch 0.3s ease-in-out infinite;
+}
+
+/* Dripping Paint Effect */
+@keyframes drip {
+  0% {
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    height: 30px;
+    opacity: 0.3;
+  }
+}
+
+.drip-effect::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 0;
+  background: linear-gradient(to bottom, var(--neon-cyan), transparent);
+  animation: drip 2s ease-in-out infinite;
+}
+
+/* Neon Border Glow */
+.neon-border {
+  border: 2px solid var(--neon-cyan);
+  box-shadow: 
+    0 0 5px var(--neon-cyan),
+    0 0 10px var(--neon-cyan),
+    inset 0 0 5px var(--neon-cyan),
+    inset 0 0 10px var(--neon-cyan);
+  transition: all 0.3s ease;
+}
+
+.neon-border:hover {
+  box-shadow: 
+    0 0 10px var(--neon-cyan),
+    0 0 20px var(--neon-cyan),
+    0 0 30px var(--neon-cyan),
+    inset 0 0 10px var(--neon-cyan),
+    inset 0 0 20px var(--neon-cyan);
+}
+
+/* Cyberpunk Grid Background */
+@keyframes grid-move {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(20px);
+  }
+}
+
+.cyber-grid {
+  background-image: 
+    linear-gradient(rgba(47, 217, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 217, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  animation: grid-move 2s linear infinite;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: bold;
+}
+
+/* Scan Line Effect */
+@keyframes scanline {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.scanline-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--neon-cyan), transparent);
+  animation: scanline 3s linear infinite;
+  opacity: 0.5;
+}
+
+/* Holographic Effect */
+@keyframes hologram {
+  0%, 100% {
+    opacity: 0.8;
+    transform: translateZ(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateZ(10px) scale(1.02);
+  }
+}
+
+.hologram-effect {
+  animation: hologram 2s ease-in-out infinite;
+  background: linear-gradient(
+    135deg,
+    rgba(47, 217, 255, 0.1) 0%,
+    rgba(255, 65, 214, 0.1) 100%
+  );
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-pink));
+  border-radius: 10px;
+  box-shadow: 0 0 6px var(--neon-cyan);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-pink);
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade Out Animation (Dead Coins) */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.6s ease-out forwards;
+}
+
+/* Header Fade Slide Animation */
+@keyframes headerFadeSlide {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Neon Pulse Animation */
+@keyframes neonPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px #2FD9FF)
+            drop-shadow(0 0 8px #2FD9FF)
+            drop-shadow(0 0 12px #FF41D6);
+    opacity: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 2px #2FD9FF)
+            drop-shadow(0 0 4px #FF41D6);
+    opacity: 0.85;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+/* Spin Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 2s linear infinite;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.bounce {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+/* Neon Button */
+.neon-button {
+  background: transparent;
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 0 5px var(--neon-cyan),
+    inset 0 0 5px var(--neon-cyan);
+}
+
+.neon-button:hover {
+  background: var(--neon-cyan);
+  color: #0D1117;
+  box-shadow: 
+    0 0 10px var(--neon-cyan),
+    0 0 20px var(--neon-cyan),
+    0 0 30px var(--neon-cyan);
+  transform: translateY(-2px);
+}
+
+/* Card Hover Effect */
+.cyber-card {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.cyber-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(10px);
+}
+
+.cyber-card:hover::before {
+  opacity: 0.3;
+}
+
+.cyber-card:hover {
+  transform: translateY(-4px);
+}
+
+@keyframes snipePulse {
+  0% { box-shadow: 0 0 8px #FF3EBF; }
+  50% { box-shadow: 0 0 18px #00E4FF; }
+  100% { box-shadow: 0 0 8px #FF3EBF; }
+}
+
+.animate-snipe-pulse {
+  animation: snipePulse 1.5s infinite ease-in-out;
+}
+

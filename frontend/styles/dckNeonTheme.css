@@ -1,0 +1,20 @@
+.neon-text {
+  text-shadow:
+    0 0 8px #2FD9FF,
+    0 0 16px #2FD9FF,
+    0 0 32px #FF41D6;
+}
+
+.neon-glow {
+  box-shadow:
+    0 0 8px #2FD9FF,
+    0 0 16px #2FD9FF,
+    0 0 32px #FF41D6;
+}
+
+.neon-border {
+  border: 1px solid #2FD9FF;
+  box-shadow:
+    0 0 4px #2FD9FF,
+    inset 0 0 4px #2FD9FF;
+}

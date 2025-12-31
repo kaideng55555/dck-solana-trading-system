@@ -1,0 +1,1386 @@
+# Query:  bonding
+# ContextLines: 1
+
+413 results - 67 files
+
+D15E_LIVE_SYNC_INTEGRATION.md:
+    8  - ✅ Uses `useFreshTokens()` for New Pairs column (< 2 minutes old)
+    9: - ✅ Uses `useCurveEdgeTokens()` for About to Graduate column (>= 96% bonding)
+   10: - ✅ Uses `useGraduatedTokens()` for Graduated column (100% bonding)
+   11  - ✅ Added `useLastUpdated()` for automatic refresh tracking
+
+  217        // Curve edge alert
+  218:       const bonding = token.bonding.bondingProgress || 0;
+  219:       if (bonding >= 96 && bonding < 100) {
+  220          addAlert({
+
+  223            message: `${token.metadata.symbol} at ${bonding.toFixed(1)}% - graduation incoming!`,
+  224:           data: { mint: token.mint, progress: bonding },
+  225          });
+
+README.md:
+   2  
+   3: A React + TypeScript + Vite trading platform with cyberpunk aesthetics, featuring real-time Solana token feeds, portfolio tracking, and bonding curve monitoring.
+   4  
+
+  50  
+  51: - **3-Column Token Feeds**: Newest tokens, bonding curve progress, graduated tokens
+  52  - **Real-time Updates**: WebSocket integration for live price and volume data
+
+.github/copilot-instructions.md:
+  194  ### S2: Curve Edge Sniper (Automated)
+  195: **Purpose**: Snipe tokens at 95-99% bonding curve completion, before Raydium migration
+  196  
+
+  206  interface SnipeOpportunity {
+  207:   bondingProgress: number;      // 95-99% target range
+  208    estimatedGradTime: number;    // Seconds until graduation
+
+  243  - `FRESH_TOKEN`: Buy tokens <5 min old matching criteria
+  244: - `BONDING_THRESHOLD`: Buy at specific bonding %
+  245  - `VELOCITY_SPIKE`: Buy on high velocity score
+
+  352  - Pool events: `NEW_POOL`, `LP_ADDED`, `LP_SURGE`, `LP_DRAIN`, `LP_RUG`, `MIGRATION`
+  353: - Bonding: `BONDING_NEAR_GRAD`, `BONDING_STALL`
+  354  - Market: `MC_SPIKE`, `MC_CRASH`, `VOLUME_SPIKE`, `VELOCITY_SPIKE`
+
+  473    },
+  474:   bonding: {
+  475:     bondingProgress: 97.5, // High for S2 testing
+  476      isMigrated: false,
+
+  511    it('identifies opportunities in 95-99% range', () => {
+  512:     const token = { ...mockToken, bonding: { bondingProgress: 97.5 } };
+  513      const opportunity = sniper.evaluateToken(token);
+
+  520    it('skips tokens below threshold', () => {
+  521:     const token = { ...mockToken, bonding: { bondingProgress: 92 } };
+  522      const opportunity = sniper.evaluateToken(token);
+
+  526    
+  527:   it('calculates velocity from bonding history', () => {
+  528      // Add snapshots: 90% → 95% → 97% over 60 seconds
+
+components/TokenCard.tsx:
+   13      marketCap: number;
+   14:     bondingProgress?: number;
+   15      liquidity?: number;
+
+   22    showVolume?: boolean;
+   23:   bondingProgress?: number;
+   24  }
+
+   29    showVolume = true,
+   30:   bondingProgress 
+   31  }) => {
+
+  226  
+  227:       {/* Bonding Curve Progress */}
+  228        {bondingProgress !== undefined && (
+
+components/TokenFeed.tsx:
+   74            }
+   75:           // Add new token approaching bonding curve completion
+   76            if (token.bondingProgress && token.bondingProgress >= 70) {
+
+  223                showVolume={true}
+  224:               bondingProgress={type === 'bonding' ? token.bondingProgress : undefined}
+  225              />
+
+services/websocket.ts:
+  86  
+  87:   // Subscribe to bonding curve progress (tokens approaching graduation)
+  88    subscribeToBondingCurve(callback: (data: TokenData) => void) {
+
+  94  
+  95:   // Subscribe to graduated tokens (completed bonding curve)
+  96    subscribeToGraduatedTokens(callback: (data: TokenData) => void) {
+
+src/api/live.ts:
+   13    price: number;
+   14:   bondingProgress: number;
+   15    alive: boolean;
+
+   89  /**
+   90:  * Generate random bonding progress (0-100)
+   91   */
+
+  113      price: generatePrice(),
+  114:     bondingProgress: generateBondingProgress(),
+  115      alive: generateAlive()
+
+src/charts/ChartTheme.ts:
+  15   * - volumeDown: Pink volume bars (transparent)
+  16:  * - bondingLine: Gradient for bonding curve (cyan → pink)
+  17   */
+
+  27    volumeDown: "#FF3EBF55",
+  28:   bondingLine: {
+  29      start: "#00E4FF",
+
+src/charts/LiveChart.tsx:
+   28      symbol?: string;
+   29:     bondingProgress?: number;
+   30:     bondingVelocity?: number;
+   31      liquidityHealth?: number;
+
+   47    
+   48:   const { candles, volume, bondingOverlay, loading, error } = useChartData(token.mint, timeframe);
+   49    const { openQuickSnipe } = useQuickSnipe();
+
+  124        volume: volume.length,
+  125:       bonding: bondingOverlay.length,
+  126      });
+  127:   }, [candles, volume, bondingOverlay]);
+  128  
+
+src/charts/useChartData.ts:
+    3   * 
+    4:  * Pulls live price candles and bonding curve data for a token
+    5   * Features:
+
+    7   * - Multiple timeframes (1m, 5m, 15m, 1h)
+    8:  * - Bonding curve overlay with color-coded stages
+    9   * - Volume data for histogram display
+   10   * 
+   11:  * Bonding Overlay Logic:
+   12   * - < 90%: Cyan (#00E4FF)
+
+   14   * - 99-100%: Red pulse
+   15:  * - Uses bonding.velocity & eta if available
+   16   */
+
+   39  
+   40: export interface BondingOverlayPoint {
+   41    time: number; // Unix timestamp in seconds
+   42:   value: number; // Bonding progress (0-100)
+   43    color?: string; // Color based on progress
+
+   48    volume: VolumeData[];
+   49:   bondingOverlay: BondingOverlayPoint[];
+   50    loading: boolean;
+
+   59  /**
+   60:  * Get color for bonding progress
+   61   */
+
+  119  /**
+  120:  * Generate mock bonding overlay data (replace with real API call)
+  121   */
+  122: function generateMockBondingOverlay(candles: CandleData[]): BondingOverlayPoint[] {
+  123    const startProgress = 50;
+
+  195      volume,
+  196:     bondingOverlay,
+  197      loading,
+
+src/components/CoinCard.tsx:
+   10    price: number;
+   11:   bondingProgress: number;
+   12    alive: boolean;
+
+   14    isMigrated?: boolean; // Computed: graduated + authorities renounced
+   15:   isOnCurve?: boolean; // Computed: still on bonding curve
+   16    isFairLaunch?: boolean; // Computed: no presale/team allocation
+
+   38      getTokenStatus(coin.address, {
+   39:       bondingProgress: coin.bondingProgress,
+   40        marketCap: coin.marketCap,
+
+  130                  className="px-1.5 py-0.5 text-[10px] font-bold bg-cyan-500/20 text-cyan-400 rounded border border-cyan-500/40"
+  131:                 title="Still on bonding curve"
+  132                >
+
+  169            
+  170:           {/* Bonding Curve Progress Indicator */}
+  171            {isOnBondingCurve && (
+
+  174                  <span className="text-[10px] text-cyan-400 flex items-center gap-1">
+  175:                   📈 Bonding Curve
+  176                  </span>
+
+src/components/CurveSniperPanel.tsx:
+  4   * Professional trading panel for curve edge sniping
+  5:  * Monitors bonding curve tokens approaching graduation
+  6   * Provides auto-execution and manual snipe controls
+
+src/components/ExplorerFilters.tsx:
+   49        ageRange: [0, 86400],
+   50:       bondingProgressRange: [0, 100],
+   51        sortBy: 'marketCap',
+
+  192                <span className="text-sm text-gray-300 group-hover:text-cyan-400 transition-colors">
+  193:                 On Bonding Curve 📈
+  194                </span>
+
+  210  
+  211:         {/* Bonding Progress Range */}
+  212          <div>
+  213            <label className="block text-sm font-medium text-cyan-400 mb-2">
+  214:             📈 Bonding Progress
+  215            </label>
+
+  232                  ];
+  233:                 setFilters(prev => ({ ...prev, bondingProgressRange: newRange }));
+  234                }}
+
+  247                  ];
+  248:                 setFilters(prev => ({ ...prev, bondingProgressRange: newRange }));
+  249                }}
+
+src/components/ExplorerQuickFilters.tsx:
+  276                ageRange: [0, 86400],
+  277:               bondingProgressRange: [0, 100],
+  278                sortBy: filters.sortBy, // Keep current sort
+
+src/components/FeedList.tsx:
+  10    price: number;
+  11:   bondingProgress: number;
+  12    alive: boolean;
+
+src/components/cards/CoinCardExplorer.tsx:
+   15      price: number;
+   16:     bondingProgress: number;
+   17      alive?: boolean; // Dead coin indicator
+
+  261  
+  262:           {/* Bonding Curve Progress Bar */}
+  263            {isOnCurve && (
+
+  266                  <span className="text-[9px] text-cyan-400 uppercase tracking-wide">
+  267:                   Bonding Curve
+  268                  </span>
+
+src/components/sniper/CurveEdgeModule.tsx:
+    3   * 
+    4:  * Bonding Curve Edge Sniper
+    5:  * Targets tokens approaching graduation (90-100% bonding progress)
+    6   * Features velocity tracking, acceleration analysis, and ETA predictions
+
+   75              <p style={subtextStyle}>
+   76:               DCK graduation sniper — buys tokens about to leave bonding curve
+   77              </p>
+
+  116              <p style={emptySubtextStyle}>
+  117:               Waiting for tokens to reach 90-100% bonding progress...
+  118              </p>
+
+  231  
+  232:         {/* Bonding Progress Bar */}
+  233          <div style={progressSectionStyle}>
+
+src/components/sniper/LimitPanel.tsx:
+  356              />
+  357:             <span>Require Bonding {'<'} 99% 📊</span>
+  358            </label>
+
+src/components/sniper/QUICK_SNIPE_IMPLEMENTATION.md:
+   52  - **Fresh Indicator**: 🔥 FRESH badge for tokens < 2 min with green glow
+   53: - **Responsive Grid**: 5-column layout (Token Info, Price, Bonding, Age, Actions)
+   54  - **Smooth Scrolling**: Max height 600px with custom scrollbar styling
+
+  140  1. **Filtering Options**
+  141:    - Min/max bonding progress slider
+  142     - Min liquidity threshold
+
+  166  ✅ `isAlive` check (excludes dead/rugged tokens)
+  167: ✅ Bonding progress visibility (avoid 100% graduated)
+  168  ✅ Turbo settings preset (10% slippage, Jito enabled)
+
+src/components/sniper/QuickSnipeModule.tsx:
+  175  
+  176:       {/* Bonding Progress */}
+  177        <div style={dataColumnStyle}>
+
+src/components/terminal/TerminalChart.tsx:
+    8   * - Volume bars
+    9:  * - Bonding progress overlay
+   10   * - Quick Snipe button
+
+  111                symbol: token.metadata.symbol,
+  112:               bondingProgress: token.bonding.bondingProgress,
+  113:               bondingVelocity: token.bonding.velocityScore,
+  114                liquidityHealth: token.liquidityHealth,
+
+  135              <div style={{ fontSize: '11px', color: '#8899AA', marginBottom: '4px' }}>
+  136:               BONDING
+  137              </div>
+
+  296    },
+  297:   bondingOverlay: {
+  298      position: 'absolute',
+
+  307    },
+  308:   bondingProgress: {
+  309      textAlign: 'center',
+  310    },
+  311:   bondingBar: {
+  312      width: '100%',
+
+  317    },
+  318:   bondingFill: {
+  319      height: '100%',
+
+src/components/terminal/TokenInfoPanel.tsx:
+    7   * - Market stats
+    8:  * - Bonding progress ring
+    9   * - Sniper indicators (FRESH, CURVE EDGE, TRENDING)
+
+  148  
+  149:       {/* Bonding Progress Ring */}
+  150        <div style={styles.bondingSection}>
+
+  372    },
+  373:   bondingSection: {
+  374      display: 'flex',
+
+  377    },
+  378:   bondingRing: {
+  379      position: 'relative',
+
+  382    },
+  383:   bondingText: {
+  384      position: 'absolute',
+
+  389    },
+  390:   bondingPercent: {
+  391      fontSize: '24px',
+
+  394    },
+  395:   bondingLabel: {
+  396      fontSize: '10px',
+
+src/components/trader/AnalyticsPanel.tsx:
+    6   * - A: Sniper Status (S1-S6 modules)
+    7:  * - B: Bonding Curve Intelligence
+    8   * - C: Liquidity + Risk Center
+
+   26    };
+   27:   bondingData: {
+   28      progress: number;
+
+   52    sniperStatus,
+   53:   bondingData,
+   54    liquidityData,
+   55  }: AnalyticsPanelProps) {
+   56:   const { progress, velocity, acceleration, eta, confidence, recommendation } = bondingData;
+   57    const { lpHealth, rugRisk, authorityRisk, recentEvents, whaleBuys, holderDistribution, jitoProtection } =
+
+  345  
+  346:         {/* ===== COLUMN B: BONDING CURVE INTELLIGENCE ===== */}
+  347          <div
+
+  372            >
+  373:             📉 BONDING INTELLIGENCE
+  374            </h3>
+
+src/components/trader/TokenHeader.tsx:
+   34      holderCount: number;
+   35:     bondingProgress: number;
+   36      lpLocked: boolean;
+
+   88      holderCount,
+   89:     bondingProgress,
+   90      lpLocked,
+
+  371  
+  372:             {/* Bonding Progress */}
+  373              <div>
+
+  378                    fontWeight: 700,
+  379:                   color: bondingProgress >= 100 ? '#00FF8C' : bondingProgress >= 70 ? '#FFD700' : '#FF8C00',
+  380                    textShadow: `0 0 10px ${bondingProgress >= 100 ? 'rgba(0,255,140,0.8)' : 'rgba(255,140,0,0.8)'}`,
+
+src/components/trader/TradingChart.tsx:
+   8   * - Volume histogram
+   9:  * - Bonding curve overlay
+  10   * - Auto-update every 3 seconds
+
+  25      symbol?: string;
+  26:     bondingProgress?: number;
+  27:     bondingVelocity?: number;
+  28      liquidityHealth?: number;
+
+  43            symbol: tokenData?.symbol,
+  44:           bondingProgress: tokenData?.bondingProgress,
+  45:           bondingVelocity: tokenData?.bondingVelocity,
+  46            liquidityHealth: tokenData?.liquidityHealth,
+
+src/data/AUTHORITY_ANALYZER_SUMMARY.md:
+  258  ```tsx
+  259: // Total risk = authority + liquidity + bonding
+  260  const totalRisk = 
+
+  279    token.liquidityHealth >= 80 &&        // Excellent liquidity
+  280:   token.curveHealth >= 70 &&            // Healthy bonding curve
+  281    token.bonding.curveStage === 'peak' && // Near graduation
+
+  469  
+  470: **Combined with bonding + liquidity analyzers = complete token safety suite!** 🚀
+  471  
+
+src/data/BONDING_ANALYZER_README.md:
+    1: # Bonding Curve Analyzer - Quick Reference
+    2  
+
+    4  
+    5: Analyzes token bonding curves and provides:
+    6  - **Lifecycle stage** detection (new → ramping → peak → graduated)
+
+   66  
+   67: const bondingInfo = analyzeBondingCurve(rawToken);
+   68  
+
+  138  ```typescript
+  139: remainingProgress = 100 - bondingProgress;
+  140  velocity = calculateVelocity(volume, trend);
+
+  173  
+  174: ### Bonding Progress Calculation
+  175  1. Use explicit `bondingProgress` field if available
+
+src/data/BONDING_ANALYZER_USAGE.md:
+    1: # Bonding Analyzer Integration Guide
+    2  
+
+    4  
+    5: The bonding analyzer provides sophisticated metrics for token bonding curves, including lifecycle stages, health scores, graduation predictions, and risk flags.
+    6  
+
+    8  
+    9: All tokens now include enhanced bonding metrics:
+   10  
+
+   12  interface Token {
+   13:   bonding: {
+   14      // Core metrics
+   15:     bondingProgress: number;              // 0-100
+   16      isMigrated: boolean;
+
+   63  - Migrated to Raydium or other DEX
+   64: - Bonding curve complete
+   65  - LP typically locked/burned
+
+   73  ```tsx
+   74: // Old: Group by simple bondingProgress thresholds
+   75  const newPairs = tokens.filter(t => t.bonding.bondingProgress < 40);
+
+  280  function TrendIndicator({ token }: { token: Token }) {
+  281:   const { curveTrend, bondingProgress } = token.bonding;
+  282    
+
+  381  - [ ] Highlight tokens near graduation
+  382: - [ ] Add tooltip with full bonding metrics
+  383  
+
+src/data/bondingAnalyzer.ts:
+    1  /**
+    2:  * Bonding Curve Analyzer
+    3:  * Advanced metrics for token bonding curve analysis and graduation prediction
+    4   */
+
+    8  /**
+    9:  * Bonding curve lifecycle stage
+   10   */
+
+   13  /**
+   14:  * Bonding curve trend direction
+   15   */
+
+   18  /**
+   19:  * Bonding curve health flags
+   20   */
+   21: export interface BondingFlags {
+   22    lowLiquidity: boolean;           // Liquidity below healthy threshold
+
+   31  /**
+   32:  * Complete bonding curve analysis result
+   33   */
+   34: export interface BondingInfo {
+   35:   bondingProgress: number;              // 0-100 (percentage to graduation)
+   36    curveStage: CurveStage;               // Current lifecycle stage
+
+   41    estimatedGraduationTime: number;      // Minutes until graduation (0 if already graduated)
+   42:   flags: BondingFlags;                  // Risk/health indicators
+   43    
+
+   50  /**
+   51:  * Bonding curve stage thresholds
+   52   */
+
+   79  /**
+   80:  * Calculate bonding progress from multiple signals
+   81   */
+   82  function calculateBondingProgress(raw: RawTokenData): number {
+   83:   // Priority 1: Explicit bonding progress field
+   84    if (raw.bondingProgress !== undefined) {
+
+  124  /**
+  125:  * Determine curve stage from bonding progress
+  126   */
+
+  177    liquidityScore: number,
+  178:   bondingProgress: number,
+  179    lpBurned: boolean,
+
+  190    // Sweet spot: 20-80% progress
+  191:   if (bondingProgress >= 20 && bondingProgress <= 80) {
+  192      health += 20;
+  193:   } else if (bondingProgress >= 10 && bondingProgress <= 90) {
+  194      health += 15;
+
+  224    priceChange24h: number | undefined,
+  225:   bondingProgress: number
+  226  ): CurveTrend {
+
+  277  function estimateGraduationTime(
+  278:   bondingProgress: number,
+  279    volume24h: number,
+
+  282  ): number {
+  283:   if (isMigrated || bondingProgress >= 100) {
+  284      return 0; // Already graduated
+
+  286    
+  287:   const remainingProgress = 100 - bondingProgress;
+  288    
+
+  320  function calculateVelocityScore(
+  321:   bondingProgress: number,
+  322    ageMinutes: number,
+
+  327    // Progress per minute
+  328:   const progressPerMinute = bondingProgress / ageMinutes;
+  329    
+
+  382  /**
+  383:  * Generate bonding curve flags
+  384   */
+
+  389    curveTrend: CurveTrend,
+  390:   bondingProgress: number,
+  391    lpBurned: boolean,
+  392    curveHealth: number
+  393: ): BondingFlags {
+  394    return {
+
+  400      
+  401:     curveFlattening: curveTrend === 'flat' && bondingProgress > 30 && bondingProgress < 90,
+  402      
+  403:     migrationLikely: bondingProgress > 85 || (lpBurned && bondingProgress > 70),
+  404      
+
+  411  /**
+  412:  * Main bonding curve analysis function
+  413:  * Analyzes a raw token and returns comprehensive bonding metrics
+  414   */
+  415: export function analyzeBondingCurve(rawToken: RawTokenData): BondingInfo {
+  416    // Extract base metrics
+
+  437    // Core calculations
+  438:   const bondingProgress = calculateBondingProgress(rawToken);
+  439    const curveStage = determineCurveStage(bondingProgress, isMigrated);
+  440:   const isCloseToMigration = bondingProgress > 85 || (lpBurned && bondingProgress > 75);
+  441    const liquidityScore = calculateLiquidityScore(liquidity, volume24h);
+  442:   const curveTrend = determineCurveTrend(volume24h, priceChange24h, bondingProgress);
+  443    const curveHealth = calculateCurveHealth(
+  444      liquidityScore,
+  445:     bondingProgress,
+  446      lpBurned,
+
+  451    const estimatedGraduationTime = estimateGraduationTime(
+  452:     bondingProgress,
+  453      volume24h,
+
+  464      curveTrend,
+  465:     bondingProgress,
+  466      lpBurned,
+
+  470    return {
+  471:     bondingProgress,
+  472      curveStage,
+
+src/data/EXAMPLE_EXPLORER_MIGRATION.tsx:
+   47      price: token.market.price,
+   48:     bondingProgress: token.bonding.bondingProgress,
+   49      alive: token.isAlive,
+
+  106      ageRange: [0, 86400] as [number, number],
+  107:     bondingProgressRange: [0, 100] as [number, number],
+  108      sortBy: 'marketCap' as 'marketCap' | 'volume' | 'ageAsc' | 'ageDesc' | 'bonding' | 'launchAge',
+
+  165  
+  166:     // Bonding progress range
+  167      filtered = filtered.filter(
+
+src/data/index.ts:
+  50  
+  51: // Bonding curve analysis
+  52  export {
+
+  56    getCurveTrendEmoji,
+  57:   type BondingInfo,
+  58    type CurveStage,
+  59    type CurveTrend,
+  60:   type BondingFlags,
+  61  } from './bondingAnalyzer';
+
+src/data/LIQUIDITY_ANALYZER_USAGE.md:
+  611  - **tokenNormalizer.ts**: Automatic integration during normalization
+  612: - **BONDING_ANALYZER_USAGE.md**: Bonding curve integration guide
+  613  
+
+src/data/MIGRATION_GUIDE.md:
+  140  | `volume24h` | `market.volume24h` | Nested in market |
+  141: | `bondingProgress` | `bonding.bondingProgress` | Nested in bonding |
+  142: | `isMigrated` | `bonding.isMigrated` | Nested in bonding |
+  143  | `lpBurned` | `lpBurned` | Top-level boolean |
+
+  157  - `useSortedTokens(sortBy, direction)` - Get sorted tokens
+  158: - `useTokensByGraduation()` - Get tokens grouped by bonding progress
+  159  - `useSafeTokens()` - Get only safe tokens (LP burned + authorities disabled)
+
+src/data/mockApi.ts:
+  63    
+  64:   const bondingProgress = randomInRange(0, 100);
+  65:   const isMigrated = bondingProgress >= 100 || Math.random() > 0.8;
+  66    
+
+  92      
+  93:     bondingProgress,
+  94      migrated: isMigrated,
+
+src/data/README.md:
+   85  ### useTokensByGraduation()
+   86: Get tokens grouped by bonding progress.
+   87  
+
+  109    };
+  110:   bonding: {
+  111:     bondingProgress: number; // 0-100
+  112      isMigrated: boolean;
+
+src/data/tokenNormalizer.1:
+  138    
+  139:   // Normalize bonding progress
+  140:   const bondingProgress = raw.bondingProgress ?? raw.bonding_curve_percentage ?? 0;
+  141    
+  142    // Check migration status
+  143:   const isMigrated = raw.migrated || raw.graduated || bondingProgress >= 100 || false;
+  144    
+
+  175    
+  176:   // ✨ Analyze bonding curve with advanced metrics
+  177:   const bondingAnalysis = analyzeBondingCurve(raw);
+  178    
+
+  205      
+  206:     bonding: {
+  207:       bondingProgress: bondingAnalysis.bondingProgress,
+  208        currentReserves: raw.currentReserves,
+
+  211        
+  212:       // Enhanced bonding metrics
+  213:       curveStage: bondingAnalysis.curveStage,
+  214:       isCloseToMigration: bondingAnalysis.isCloseToMigration,
+  215:       liquidityScore: bondingAnalysis.liquidityScore,
+  216:       curveHealth: bondingAnalysis.curveHealth,
+  217:       curveTrend: bondingAnalysis.curveTrend,
+  218:       estimatedGraduationTime: bondingAnalysis.estimatedGraduationTime,
+  219:       velocityScore: bondingAnalysis.velocityScore,
+  220:       stabilityScore: bondingAnalysis.stabilityScore,
+  221:       buyPressureRatio: bondingAnalysis.buyPressureRatio,
+  222:       flags: bondingAnalysis.flags,
+  223      },
+
+  306      volume24h: existing.market.volume24h,
+  307:     bondingProgress: existing.bonding.bondingProgress,
+  308      migrated: existing.bonding.isMigrated,
+
+src/data/tokenNormalizer.ts:
+  138    
+  139:   // Normalize bonding progress
+  140:   const bondingProgress = raw.bondingProgress ?? raw.bonding_curve_percentage ?? 0;
+  141    
+  142    // Check migration status
+  143:   const isMigrated = raw.migrated || raw.graduated || bondingProgress >= 100 || false;
+  144    
+
+  175    
+  176:   // ✨ Analyze bonding curve with advanced metrics
+  177:   const bondingAnalysis = analyzeBondingCurve(raw);
+  178    
+
+  205      
+  206:     bonding: {
+  207:       bondingProgress: bondingAnalysis.bondingProgress,
+  208        currentReserves: raw.currentReserves,
+
+  211        
+  212:       // Enhanced bonding metrics
+  213:       curveStage: bondingAnalysis.curveStage,
+  214:       isCloseToMigration: bondingAnalysis.isCloseToMigration,
+  215:       liquidityScore: bondingAnalysis.liquidityScore,
+  216:       curveHealth: bondingAnalysis.curveHealth,
+  217:       curveTrend: bondingAnalysis.curveTrend,
+  218:       estimatedGraduationTime: bondingAnalysis.estimatedGraduationTime,
+  219:       velocityScore: bondingAnalysis.velocityScore,
+  220:       stabilityScore: bondingAnalysis.stabilityScore,
+  221:       buyPressureRatio: bondingAnalysis.buyPressureRatio,
+  222:       flags: bondingAnalysis.flags,
+  223      },
+
+  306      volume24h: existing.market.volume24h,
+  307:     bondingProgress: existing.bonding.bondingProgress,
+  308      migrated: existing.bonding.isMigrated,
+
+src/data/tokenTypes.ts:
+   37  /**
+   38:  * Bonding curve / graduation status
+   39   */
+   40  export interface TokenBondingData {
+   41:   bondingProgress: number; // 0-100
+   42    currentReserves?: number;
+
+   45    
+   46:   // Enhanced bonding analysis (from bondingAnalyzer)
+   47    curveStage?: 'new' | 'ramping' | 'peak' | 'graduated';
+
+   56    
+   57:   // Bonding curve flags
+   58    flags?: {
+
+   93    
+   94:   // Bonding/graduation data
+   95:   bonding: TokenBondingData;
+   96    
+
+  161    
+  162:   // Bonding data
+  163:   bondingProgress?: number;
+  164:   bonding_curve_percentage?: number;
+  165    migrated?: boolean;
+
+src/feed/FEED_NORMALIZER_USAGE.md:
+   29      marketCap: token.market.marketCap,
+   30:     bondingStage: token.bonding.curveStage,
+   31:     bondingProgress: token.bonding.bondingProgress,
+   32      velocity: token.bonding.velocityScore,
+
+   58  - Market data (price, marketCap, liquidity, volume)
+   59: - Bonding curve analysis (stage, progress, health, trend)
+   60  - Authority analysis (mint/freeze authorities, renounce status)
+
+   86    snipeFresh: boolean;        // Token < 90 seconds old
+   87:   snipeCurveEdge: boolean;    // Bonding >= 96% & velocity > 1.0
+   88    snipeVolumeSpike: boolean;  // Volume > 2x previous update
+
+   90  
+   91: // Access via bonding.flags
+   92  if (token.bonding.flags?.snipeFresh) {
+
+  313  
+  314: ### Custom Bonding Prediction
+  315  
+
+  380    ageSeconds: 60,
+  381:   bondingProgress: 45,
+  382    velocity: 2.5,
+
+src/feed/FeedNormalizer.ts:
+    8   * - Field cleaning and standardization
+    9:  * - Bonding curve prediction and stage classification
+   10   * - Liquidity and authority risk analysis
+
+   29  /**
+   30:  * Bonding curve stage classification
+   31   */
+   32: type BondingStage = 'new' | 'mid' | 'late' | 'graduated';
+   33  
+
+   38    snipeFresh: boolean;        // Token < 90 seconds old
+   39:   snipeCurveEdge: boolean;    // Bonding >= 96% & velocity > 1.0
+   40    snipeVolumeSpike: boolean;  // Volume > 2x previous
+
+  127  
+  128:     // Determine bonding stage
+  129:     const bondingStage = this.getBondingStage(update.bondingProgress);
+  130  
+  131:     // Calculate bonding prediction
+  132:     const bondingPrediction = this.predictBondingTime(
+  133        update.bondingProgress,
+
+  168  
+  169:     // Build bonding data with enhanced analysis
+  170:     const bondingData: TokenBondingData = {
+  171:       bondingProgress: update.bondingProgress,
+  172        currentReserves: undefined,
+
+  175        
+  176:       // Enhanced bonding analysis
+  177:       curveStage: bondingStage as 'new' | 'ramping' | 'peak' | 'graduated',
+  178        isCloseToMigration: update.bondingProgress >= 85,
+
+  181        curveTrend: this.determineCurveTrend(mintState.priceHistory),
+  182:       estimatedGraduationTime: bondingPrediction,
+  183        velocityScore: this.normalizeVelocityScore(velocity),
+
+  186        
+  187:       // Bonding curve flags
+  188        flags: {
+
+  265        market,
+  266:       bonding: bondingData,
+  267        authorities,
+
+  353    // ============================================================
+  354:   // BONDING ANALYSIS
+  355    // ============================================================
+
+  357    /**
+  358:    * Classify bonding stage based on progress percentage.
+  359     */
+  360:   private getBondingStage(progress: number): BondingStage {
+  361      if (progress >= 100) return 'graduated';
+
+  502      ageSeconds: number,
+  503:     bondingProgress: number,
+  504      velocity: number,
+
+  509        snipeFresh: ageSeconds < 90,
+  510:       snipeCurveEdge: bondingProgress >= 96 && velocity > 1.0,
+  511        snipeVolumeSpike: previousVolume > 0 && currentVolume > previousVolume * 2,
+
+src/feed/useLiveTokens.ts:
+   85   * Get curve edge tokens (near graduation with positive momentum).
+   86:  * - Bonding progress >= 96%
+   87   * - Velocity score > 1.0 (proxy for price velocity)
+   88:  * Sorted by bonding progress (highest first).
+   89   */
+
+   95        .filter((token) => {
+   96:         const bondingProgress = token.bonding.bondingProgress || 0;
+   97          const velocityScore = token.bonding.velocityScore || 0;
+
+  103  
+  104:         return bondingProgress >= 96 && hasPositiveVelocity;
+  105        })
+
+  123        .filter((token) => {
+  124:         const bondingProgress = token.bonding.bondingProgress || 0;
+  125:         return bondingProgress >= 100;
+  126        })
+
+  250  /**
+  251:  * Get tokens by bonding stage.
+  252   * 
+
+  286   * - Fresh: age < 2 minutes
+  287:  * - Curve edge: bonding >= 96% with positive velocity
+  288   * - Volume spike: would need historical data (approximated by high volume)
+
+  295        const ageSeconds = token.ageMinutes * 60;
+  296:       const bondingProgress = token.bonding.bondingProgress || 0;
+  297        const velocityScore = token.bonding.velocityScore || 0;
+
+  301        const isFresh = ageSeconds < 120; // < 2 minutes
+  302:       const isCurveEdge = bondingProgress >= 96 && velocityScore > 55;
+  303        const hasHighVolume = volume24h > 5000; // Proxy for volume spike
+
+src/hooks/useCurveEdgeSnipe.ts:
+    3   * 
+    4:  * Monitors tokens with bonding progress 90-100%
+    5:  * Tracks velocity and acceleration using BondingCurvePredictor
+    6   * Generates snipe opportunities with detailed metrics
+
+    9  import { useState, useEffect, useCallback, useRef } from 'react';
+   10: import { BondingCurvePredictor, type CurvePrediction } from '../sniper/bondingCurvePredictor';
+   11  import { getSnipeScore } from '../sniper/curveEdgeSniper';
+
+   28    
+   29:   /** Current bonding progress (0-100) */
+   30    progress: number;
+
+   59  
+   60: // Helper type to match BondingCurvePredictor expected format
+   61  interface TokenSnapshot {
+
+   64    name: string;
+   65:   bonding?: {
+   66      progress?: number;
+
+   79    
+   80:   const predictorRef = useRef(new BondingCurvePredictor());
+   81    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  137          name: token.metadata.name,
+  138:         bonding: {
+  139            progress: token.bonding?.bondingProgress,
+
+src/hooks/useExplorerFilters.ts:
+  11    price: number;
+  12:   bondingProgress: number; // 0-100
+  13    alive: boolean;
+
+  37    migrated: boolean;
+  38:   onCurveOnly: boolean; // Filter to only bonding curve tokens
+  39    fairLaunchOnly: boolean; // Filter to only fair launch tokens
+
+  42    ageRange: [number, number]; // in seconds
+  43:   bondingProgressRange: [number, number]; // 0-100
+  44    sortBy: 'marketCap' | 'volume' | 'ageAsc' | 'ageDesc' | 'bonding' | 'launchAge';
+
+  67    ageRange: [0, 86400], // 0 to 24 hours
+  68:   bondingProgressRange: [0, 100],
+  69    sortBy: 'marketCap',
+
+src/hooks/useLiveFeed.ts:
+   9    price: number;
+  10:   bondingProgress: number;
+  11    alive: boolean;
+
+  61  
+  62:         // midCoins: lowest bondingProgress first
+  63          midBucket.sort((a, b) => a.bondingProgress - b.bondingProgress);
+
+src/live/LIVE_FEED_ENGINE_USAGE.md:
+   29      ageSeconds: entry.ageSeconds,
+   30:     bondingProgress: entry.bondingProgress,
+   31      risks: entry.risks,
+
+  103    ageSeconds: number;        // Token age in seconds
+  104:   bondingProgress: number;   // Bonding curve progress (0-100%)
+  105    velocity: number;          // Price change velocity
+
+src/live/LiveFeedEngine.ts:
+   32    ageSeconds: number; // Token age in seconds
+   33:   bondingProgress: number; // 0-100 percentage
+   34    velocity: number; // Price change velocity
+
+  193     * Handle incoming WebSocket log events.
+  194:    * Parse for token transfers, swaps, liquidity changes, bonding curve updates.
+  195     */
+
+  333    /**
+  334:    * Calculate bonding curve progress (0-100).
+  335     * For Pump.fun tokens - percentage toward graduation threshold.
+
+  434      const ageSeconds = Math.floor((now - createdAt) / 1000);
+  435:     const bondingProgress = this.calculateBondingProgress(marketCap);
+  436  
+
+  445        ageSeconds,
+  446:       bondingProgress,
+  447        velocity: 0, // Would calculate from price history
+
+src/pages/CoinDetails.tsx:
+   20    age: number;
+   21:   bondingProgress: number;
+   22    isMigrated: boolean;
+
+   56          age: 7200, // 2 hours
+   57:         bondingProgress: 67.5,
+   58          isMigrated: false,
+
+  358  
+  359:             {/* Bonding Curve Card */}
+  360              {coin.isOnCurve && (
+
+  362                  <h2 className="text-xl font-bold gradient-text-cyan-pink mb-4 flex items-center gap-2">
+  363:                   <span>📈</span> Bonding Curve
+  364                  </h2>
+
+src/pages/Dashboard.tsx:
+  36    price: number;
+  37:   bondingProgress: number;
+  38    alive: boolean;
+
+src/pages/Explorer.tsx:
+  145  
+  146:   // Categorize coins by bonding progress (desktop only)
+  147    const categorizedCoins = useMemo(() => {
+
+  317                    ageRange: [0, 86400],
+  318:                   bondingProgressRange: [0, 100],
+  319                    sortBy: 'marketCap',
+
+  475                    >
+  476:                     📈 Bonding
+  477                    </button>
+
+  494                      <option value="launchAge">🚀 Launch Age</option>
+  495:                     <option value="bonding">📈 Bonding Progress</option>
+  496                    </select>
+
+  661                          <th className="px-4 py-3 text-center text-xs font-semibold text-cyan-400 uppercase tracking-wider">
+  662:                           Bonding
+  663                          </th>
+
+  731  
+  732:                           {/* Bonding Progress */}
+  733                            <td className="px-4 py-3 text-center">
+
+  882      const ageSeconds = Math.floor(Math.random() * 86400); // 0-24 hours
+  883:     const bondingProgress = Math.floor(Math.random() * 100);
+  884      const launchTimestamp = now - ageSeconds * 1000;
+
+  898        price: parseFloat((Math.random() * 10).toFixed(8)),
+  899:       bondingProgress,
+  900        alive: true,
+
+  908        // Computed fields (will be enriched by hook, but adding base values)
+  909:       isMigrated: bondingProgress >= 100 && lpBurned && mintDisabled && freezeDisabled,
+  910:       isOnCurve: bondingProgress < 100,
+  911        isFairLaunch,
+
+src/pages/ExplorerDesktop.tsx:
+  252                      price: token.market?.price || 0,
+  253:                     bondingProgress: token.bonding?.bondingProgress || 0,
+  254                      lpBurned: token.lpBurned,
+
+  463    const newPairs = useFreshTokens(); // < 2 minutes old
+  464:   const graduating = useCurveEdgeTokens(); // >= 96% bonding progress
+  465:   const graduated = useGraduatedTokens(); // 100% bonding (graduated)
+  466    const lastUpdated = useLastUpdated();
+
+src/pages/TRADING_TERMINAL_README.md:
+  33  - Overlays:
+  34:   - Bonding progress indicator
+  35    - Depth walls (buy/sell)
+
+  48    - Holders
+  49: - Bonding progress ring (SVG gradient)
+  50  - Sniper signals:
+  51    - 🆕 FRESH (< 90s old)
+  52:   - 🎯 CURVE EDGE (> 96% bonding)
+  53    - 📈 TRENDING UP (velocity > 70)
+
+src/sniper/bondingCurvePredictor.ts:
+   3  export interface CurveSnapshot {
+   4:   progress: number;        // bonding progress 0–100
+   5    marketCap: number;
+
+  20    mint: string;
+  21:   bonding?: {
+  22      progress?: number;
+  23:     bondingProgress?: number;
+  24    };
+
+  27  
+  28: export class BondingCurvePredictor {
+  29    private history: Record<string, CurveSnapshot[]> = {};
+
+src/sniper/curveEdgeSniper.ts:
+    3   * 
+    4:  * Monitors bonding curve tokens approaching graduation (100% progress)
+    5   * and executes precision snipes right before Raydium migration
+
+   19  export interface CurveEdgeConfig {
+   20:   /** Minimum bonding progress to start monitoring (default: 95%) */
+   21    minProgress: number;
+   22    
+   23:   /** Maximum bonding progress to snipe at (default: 99%) */
+   24    maxProgress: number;
+
+   60    
+   61:   /** Current bonding progress (0-100) */
+   62:   bondingProgress: number;
+   63    
+
+  338      // TODO: Replace with real API call to your backend
+  339:     // This would fetch tokens with bondingProgress >= minProgress
+  340      
+
+  379        name: token.name,
+  380:       bondingProgress: progress,
+  381        estimatedGradTime,
+
+  392    /**
+  393:    * Calculate bonding curve progress
+  394     */
+  395    private calculateBondingProgress(token: SolanaTokenInfo): number {
+  396:     // TODO: Integrate with bonding analyzer
+  397      // For now, return mock value based on age
+
+src/sniper/hotBuyBot.ts:
+  134      case 'velocityAbove':
+  135:       // Velocity from bonding curve data (default 0)
+  136:       const velocity = 0; // Would need to track via BondingCurvePredictor
+  137        return velocity > threshold;
+
+  139      case 'accelerationAbove':
+  140:       // Acceleration from bonding curve data (default 0)
+  141:       const acceleration = 0; // Would need to track via BondingCurvePredictor
+  142        return acceleration > threshold;
+
+  144      case 'etaBelow':
+  145:       // ETA to graduation (calculate from bonding progress)
+  146        const progress = token.bonding?.bondingProgress ?? 0;
+
+src/sniper/limits/limitTrader.ts:
+  133        lpAmount: token.market.liquidity,
+  134:       bondingProgress: token.bonding.bondingProgress,
+  135        velocity: token.bonding.velocityScore,
+
+src/styles/neonEffects.css:
+  208  /* ========================================
+  209:    FLICKER EFFECT (High Bonding Curve)
+  210     ======================================== */
+
+src/terminal/TerminalChartPanel.tsx:
+    7   * - Real-time candlestick chart with volume
+    8:  * - Bonding curve progress overlay
+    9   * - Multiple timeframes (1m, 5m, 15m, 1h)
+
+   90  /**
+   91:  * Get bonding progress color
+   92   */
+
+  111    const volumeSeriesRef = useRef<any>(null);
+  112:   const bondingSeriesRef = useRef<any>(null);
+  113  
+
+  123      style.textContent = `
+  124:       @keyframes bondingPulse {
+  125          0%, 100% { opacity: 1; }
+
+  244  
+  245:         // Bonding curve overlay
+  246:         const bondingSeries = (chart as any).addLineSeries({
+  247            color: '#00E4FF',
+
+  263          volumeSeriesRef.current = volumeSeries;
+  264:         bondingSeriesRef.current = bondingSeries;
+  265          setChartReady(true);
+
+  316      if (bondingSeriesRef.current && chartData.bondingOverlay.length > 0) {
+  317:       bondingSeriesRef.current.setData(chartData.bondingOverlay.map((point: any) => ({
+  318          time: point.time as Time,
+
+  324        const color = getBondingColor(latestProgress);
+  325:       bondingSeriesRef.current.applyOptions({ color });
+  326      }
+
+  382    const velocityIndicator = getVelocityIndicator(token?.bonding?.velocityScore);
+  383:   const bondingProgress = token?.bonding?.bondingProgress || 0;
+  384:   const bondingColor = getBondingColor(bondingProgress);
+  385    
+
+  389    // Determine if we should pulse the border (bonding >= 96%)
+  390:   const shouldPulseBorder = bondingProgress >= 96;
+  391  
+
+  509          >
+  510:           {/* Bonding Progress */}
+  511            <div
+
+  518                fontWeight: 600,
+  519:               color: bondingColor,
+  520                textShadow: `0 0 6px ${bondingColor}`,
+  521:               animation: bondingProgress >= 99 ? 'bondingPulse 2s infinite' : 'none',
+  522              }}
+
+src/terminal/TokenInfoPanel.tsx:
+    7   * - Comprehensive token statistics
+    8:  * - Bonding curve progress visualization
+    9   * - Risk assessment indicators
+
+   76  /**
+   77:  * Get bonding stage
+   78   */
+
+  159        
+  160:       @keyframes bondingPulse {
+  161          0%, 100% { box-shadow: 0 0 15px rgba(255,62,62,0.6); }
+
+  278    const ageData = formatAge(token.ageMinutes);
+  279:   const bondingStage = getBondingStage(token.bonding.bondingProgress);
+  280    const authorityStatus = getAuthorityStatus(token);
+
+  282    
+  283:   const bondingProgress = token.bonding.bondingProgress || 0;
+  284:   const shouldPulseBonding = bondingProgress >= 99;
+  285:   const shouldGlowBonding = bondingProgress >= 96;
+  286  
+
+  430  
+  431:         {/* Bonding Curve Section */}
+  432:         <SectionHeader title="🔥 BONDING CURVE" />
+  433          <div
+
+  456                    fontWeight: 700,
+  457:                   color: bondingStage.color,
+  458                    textShadow: `0 0 8px ${bondingStage.color}`,
+
+  530                    fontWeight: 700,
+  531:                   color: bondingStage.color,
+  532                    textShadow: `0 0 6px ${bondingStage.color}`,
+
+src/types/limitTypes.ts:
+   81    
+   82:   /** Safety: Require bonding < 99% */
+   83    requireSafeBonding: boolean;
+
+  125      lpAmount: number;
+  126:     bondingProgress: number;
+  127      velocity?: number;
+
+src/utils/bondingCurvePredictor.ts:
+    1  /**
+    2:  * Bonding Curve Predictor
+    3   * 
+    4:  * Advanced ML-inspired predictor for estimating bonding curve graduation timing
+    5   * Uses historical velocity, market cap growth, and liquidity patterns
+
+   12  
+   13: export interface BondingCurveSnapshot {
+   14    /** Timestamp of snapshot */
+
+   16    
+   17:   /** Bonding progress (0-100) */
+   18    progress: number;
+
+   76  // =============================================
+   77: // BONDING CURVE PREDICTOR CLASS
+   78  // =============================================
+   79  
+   80: export class BondingCurvePredictor {
+   81:   private snapshots: Map<string, BondingCurveSnapshot[]> = new Map();
+   82    private readonly MAX_SNAPSHOTS = 100; // Keep last 100 snapshots per token
+
+   90     */
+   91:   addSnapshot(tokenMint: string, snapshot: BondingCurveSnapshot): void {
+   92      let snapshots = this.snapshots.get(tokenMint) || [];
+
+  107     */
+  108:   getSnapshots(tokenMint: string): BondingCurveSnapshot[] {
+  109      return this.snapshots.get(tokenMint) || [];
+
+  178     */
+  179:   private calculateVelocityMetrics(snapshots: BondingCurveSnapshot[]): VelocityMetrics {
+  180      if (snapshots.length < 2) {
+
+  238     */
+  239:   private calculateAverageVelocity(snapshots: BondingCurveSnapshot[]): number {
+  240      if (snapshots.length < 2) return 0;
+
+  253     */
+  254:   private calculateAcceleration(snapshots: BondingCurveSnapshot[]): number {
+  255      if (snapshots.length < 3) return 0;
+
+  315    private calculateConfidence(
+  316:     snapshots: BondingCurveSnapshot[],
+  317      velocity: VelocityMetrics
+
+  340     */
+  341:   private predictFinalMarketCap(snapshots: BondingCurveSnapshot[]): number {
+  342      if (snapshots.length < 2) return 0;
+
+  363    private identifyRiskFactors(
+  364:     snapshots: BondingCurveSnapshot[],
+  365      velocity: VelocityMetrics
+
+  495  
+  496: let predictorInstance: BondingCurvePredictor | null = null;
+  497  
+  498: export function getBondingCurvePredictor(): BondingCurvePredictor {
+  499    if (!predictorInstance) {
+  500:     predictorInstance = new BondingCurvePredictor();
+  501    }
+
+  508  
+  509: export default BondingCurvePredictor;
+  510  
+
+src/utils/tokenStatus.ts:
+   32  /**
+   33:  * Check if token has migrated from bonding curve to Raydium
+   34:  * Mock: Returns true if bondingProgress >= 100 or marketCap > 69000
+   35   */
+
+   37    mintAddress: string,
+   38:   bondingProgress?: number,
+   39    marketCap?: number
+
+   43  
+   44:   // Check if token has graduated based on bonding curve completion
+   45:   if (bondingProgress !== undefined && bondingProgress >= 100) {
+   46      return true;
+
+  202    if (!status.migrated) {
+  203:     warnings.push('ℹ️ Token still in bonding curve phase');
+  204    }
+
+  220      poolAddress?: string;
+  221:     bondingProgress?: number;
+  222      marketCap?: number;
+
+  259      poolAddress?: string;
+  260:     bondingProgress?: number;
+  261      marketCap?: number;
+
+  268          poolAddress: token.poolAddress,
+  269:         bondingProgress: token.bondingProgress,
+  270          marketCap: token.marketCap,
+
+src/walletTerminal/README.md:
+  89       * Token symbol and stats
+  90:      * MC, Bonding %, Velocity, Risk
+  91       * Neon streak animation behind fresh entries
+
+src/watchdog/useWatchdog.ts:
+  185          lpVelocity: 0, // TODO: Calculate from LP history
+  186:         bondingProgress: token.bonding.bondingProgress,
+  187:         bondingVelocity: token.bonding.velocityScore ?? 0,
+  188          volume24h: token.market.volume24h,
+
+src/watchdog/watchdogEngine.ts:
+   29    whaleSellThreshold: 10,
+   30:   bondingNearGradThreshold: 90,
+   31  };
+
+  245        case 'BONDING_NEAR_GRAD':
+  246:         // Bonding curve near graduation
+  247          return (
+
+  252        case 'BONDING_STALL':
+  253:         // Bonding curve stalled
+  254          return (
+
+src/watchdog/WatchdogPanel.tsx:
+  114        MIGRATION: "🔄 Migration",
+  115:       BONDING_NEAR_GRAD: "🎓 Near Graduation",
+  116:       BONDING_STALL: "⏸️ Bonding Stall",
+  117        MC_SPIKE: "🚀 MC Spike",
+
+  470                <option value="BONDING_NEAR_GRAD">🎓 Near Graduation</option>
+  471:               <option value="BONDING_STALL">⏸️ Bonding Stall</option>
+  472                <option value="MC_SPIKE">🚀 MC Spike</option>
+
+src/watchdog/watchdogTypes.ts:
+   21    | "MIGRATION"          // Pool migrating to new address
+   22:   | "BONDING_NEAR_GRAD"  // Bonding curve near graduation (90%+)
+   23:   | "BONDING_STALL"      // Bonding curve stalled
+   24    | "MC_SPIKE"           // Market cap spike
+
+  158    
+  159:   /** Bonding progress (0-100) */
+  160:   bondingProgress: number;
+  161    
+  162:   /** Bonding velocity (progress/min) */
+  163:   bondingVelocity: number;
+  164    
+
+  275    
+  276:   /** Bonding near graduation threshold (%) */
+  277:   bondingNearGradThreshold: number; // default: 90%
+  278  }
+
+types/solana.ts:
+  34    marketCap?: number;
+  35:   bondingProgress?: number;
+  36    liquidity?: number;
+
+  70    holders: number;
+  71:   bondingProgress?: number;
+  72    timestamp: number;

@@ -1,0 +1,25 @@
+2025-11-05 09:41:00.812 [info] Log level: Info
+2025-11-05 09:41:36.915 [info] Log level: Info
+import Chart from './Chart';
+
+export default function App() {
+  return (
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <h1>📊 DCK Market Overview</h1>
+      <Chart />
+    </div>
+  );
+}
+
+function Chart() {
+  return (
+    <div>
+      <p>Chart component - ready for your data visualization!</p>
+    </div>
+  );
+} return (
+    <div>
+      <p>Chart component - ready for your data visualization!</p>
+    </div>
+  );
+}

@@ -1,0 +1,50 @@
+/* Design Tokens - DCK Pro Theme */
+:root {
+  /* Colors - Neon Cyberpunk */
+  --color-bg: #0B0B0F;
+  --color-bg-card: #161621;
+  --color-bg-hover: #1D1D2A;
+  --color-bg-glass: rgba(22, 22, 33, 0.85);
+  
+  --color-cyan: #00F5FF;
+  --color-pink: #FF1493;
+  --color-purple: #8A2BE2;
+  --color-blue: #1E90FF;
+  --color-orange: #FF9500;
+  --color-yellow: #FFD700;
+  --color-green: #00FF88;
+  --color-red: #FF4757;
+  
+  --color-text: #E8E8E8;
+  --color-text-muted: #888;
+  --color-text-dim: #555;
+  
+  /* Borders */
+  --border-color: rgba(0, 245, 255, 0.15);
+  --border-glow: rgba(0, 245, 255, 0.4);
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  
+  /* Fonts */
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Orbitron', 'Rubik Glitch', sans-serif;
+  
+  /* Shadows */
+  --shadow-glow: 0 0 20px rgba(0, 245, 255, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}

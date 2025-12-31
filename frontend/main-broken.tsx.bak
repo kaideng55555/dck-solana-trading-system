@@ -1,0 +1,999 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+import { DCKNeonLogo } from './components/DCKNeonLogo';
+import { DCKNeonChart } from './components/DCKNeonChart';
+import { dckNeonTheme } from './styles/dckNeonTheme';
+import { tokenAPI } from './services/api';
+
+interface SolanaTokenInfo {
+  mintAddress: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  totalSupply: string;
+  mintAuthority: string | null;
+  freezeAuthority: string | null;
+  holders: number;
+  marketCap: number;
+  price: number;
+  volume24h: number;
+  priceChange24h: number;
+  createdAt: number;
+  age: number; // in seconds
+  liquidityLocked: boolean;
+  isVerified: boolean;
+}
+
+interface PriceData {
+  timestamp: number;
+  price: number;
+  volume: number;
+}
+
+function DCKDashboard() {
+  const [activeTab, setActiveTab] = useState('explore');
+  const [tokenAddress, setTokenAddress] = useState('');
+  const [tokenInfo, setTokenInfo] = useState<SolanaTokenInfo | null>(null);
+  const [priceData, setPriceData] = useState<PriceData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [wallets, setWallets] = useState([
+    { id: 1, name: 'Main Wallet', address: '7x1g...k9mP', balance: 125.34, isActive: true },
+    { id: 2, name: 'Trading #1', address: '9Zk2...m3nQ', balance: 0.00, isActive: false },
+    { id: 3, name: 'Sniper Bot', address: 'B4vE...x7wT', balance: 45.67, isActive: false },
+  ]);
+
+  const bottomTabs = [
+    { id: 'explore', label: 'Explore', icon: '🔍' },
+    { id: 'portfolio', label: 'Portfolio', icon: '📊' },
+    { id: 'trading', label: 'Trading', icon: '⚡' },
+    { id: 'wallets', label: 'Wallets', icon: '💼' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
+  ];
+
+  const sideTabs = [
+    { id: 'scanner', label: 'Token Scanner', icon: '🎯', category: 'Tools' },
+    { id: 'sniper', label: 'Sniper Bot', icon: '🏹', category: 'Tools' },
+    { id: 'nfts', label: 'NFT Scanner', icon: '🖼️', category: 'Tools' },
+    { id: 'monitor', label: 'Live Monitor', icon: '📡', category: 'Tools' },
+    { id: 'analytics', label: 'Analytics', icon: '📈', category: 'Data' },
+    { id: 'alerts', label: 'Price Alerts', icon: '🔔', category: 'Data' },
+    { id: 'degen', label: 'Degen Tools', icon: '🚀', category: 'Advanced' },
+    { id: 'rugcheck', label: 'Rug Check', icon: '🛡️', category: 'Security' },
+  ];
+
+  const [activeSideTab, setActiveSideTab] = useState('scanner');
+
+  const handleAnalyzeToken = async () => {
+    if (!tokenAddress) return;
+    
+    setIsLoading(true);
+    try {
+      // Mock data for now - will connect to real Solana API
+      const mockTokenInfo: SolanaTokenInfo = {
+        mintAddress: tokenAddress,
+        symbol: 'DEMO',
+        name: 'Demo Solana Token',
+        decimals: 6,
+        totalSupply: '1000000000',
+        mintAuthority: null,
+        freezeAuthority: null,
+        holders: 1234,
+        marketCap: 5000000,
+        price: 0.000123,
+        volume24h: 125000,
+        priceChange24h: 15.7,
+        createdAt: Date.now() / 1000 - 3600,
+        age: 3600,
+        liquidityLocked: true,
+        isVerified: false
+      };
+      setTokenInfo(mockTokenInfo);
+      
+      // Generate mock price data
+      const mockData: PriceData[] = Array.from({ length: 50 }, (_, i) => ({
+        timestamp: Date.now() / 1000 - (50 - i) * 300, // 5-minute intervals
+        price: 0.000123 * (1 + Math.sin(i * 0.2) * 0.3 + (Math.random() - 0.5) * 0.1),
+        volume: Math.random() * 10000
+      }));
+      setPriceData(mockData);
+    } catch (error) {
+      console.error('Error analyzing token:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+    return num.toString();
+  };
+
+  return (
+    <div style={{
+      background: dckNeonTheme.colors.bg,
+      color: dckNeonTheme.colors.textPrimary,
+      minHeight: '100vh',
+      fontFamily: '"Inter", sans-serif',
+    }}>
+      {/* Header */}
+      <header style={{
+        background: `${dckNeonTheme.colors.bgCard}CC`,
+        backdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${dckNeonTheme.colors.border}`,
+        padding: '20px 40px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          maxWidth: '1600px',
+          margin: '0 auto',
+        }}>
+          {/* DCK Neon Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <DCKNeonLogo />
+            <div>
+              <div style={{
+                fontSize: '14px',
+                color: dckNeonTheme.colors.textSecondary,
+                fontWeight: '500',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              }}>
+                Tools Cop
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: dckNeonTheme.colors.textMuted,
+                marginTop: '2px',
+              }}>
+                Solana Token Intelligence
+              </div>
+            </div>
+          </div>
+
+          {/* Top Header Navigation - Simplified */}
+          <div style={{
+            display: 'flex',
+            gap: '15px',
+            alignItems: 'center',
+          }}>
+            <button
+              onClick={() => setIsConnected(!isConnected)}
+              style={{
+                background: isConnected ? 
+                  dckNeonTheme.colors.bgAccent : 
+                  `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                border: isConnected ? 
+                  `1px solid ${dckNeonTheme.colors.border}` : 
+                  'none',
+                borderRadius: '8px',
+                color: '#FFFFFF',
+                padding: '10px 16px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: isConnected ? 
+                  'none' : 
+                  dckNeonTheme.colors.glowCyan,
+              }}
+            >
+              {isConnected ? '👤 Connected' : '🔗 Connect'}
+            </button>
+            
+            <div style={{
+              background: dckNeonTheme.colors.bgAccent,
+              borderRadius: '8px',
+              padding: '8px 12px',
+              fontSize: '12px',
+              color: dckNeonTheme.colors.textSecondary,
+            }}>
+              SOL: $247.83
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div style={{
+        display: 'flex',
+        height: 'calc(100vh - 80px)', // Account for header height
+      }}>
+        {/* Side Navigation */}
+        <aside style={{
+          width: '280px',
+          background: dckNeonTheme.colors.bgCard,
+          borderRight: `1px solid ${dckNeonTheme.colors.border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px 0',
+          overflowY: 'auto',
+        }}>
+          {/* Side Tabs by Category */}
+          {['Tools', 'Data', 'Advanced', 'Security'].map(category => (
+            <div key={category} style={{ marginBottom: '30px' }}>
+              <h3 style={{
+                color: dckNeonTheme.colors.textMuted,
+                fontSize: '12px',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                margin: '0 0 12px 20px',
+              }}>
+                {category}
+              </h3>
+              {sideTabs.filter(tab => tab.category === category).map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSideTab(tab.id)}
+                  style={{
+                    width: '100%',
+                    background: activeSideTab === tab.id ? 
+                      `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}15, ${dckNeonTheme.colors.neonBlue}15)` : 
+                      'transparent',
+                    border: 'none',
+                    borderRight: activeSideTab === tab.id ? 
+                      `3px solid ${dckNeonTheme.colors.neonCyan}` : 
+                      '3px solid transparent',
+                    color: activeSideTab === tab.id ? 
+                      dckNeonTheme.colors.neonCyan : 
+                      dckNeonTheme.colors.textSecondary,
+                    padding: '12px 20px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    textShadow: activeSideTab === tab.id ? 
+                      dckNeonTheme.textEffects.neonGlow.textShadow : 
+                      'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeSideTab !== tab.id) {
+                      e.target.style.background = `${dckNeonTheme.colors.bgAccent}40`;
+                      e.target.style.color = dckNeonTheme.colors.textPrimary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeSideTab !== tab.id) {
+                      e.target.style.background = 'transparent';
+                      e.target.style.color = dckNeonTheme.colors.textSecondary;
+                    }
+                  }}
+                >
+                  <span style={{ fontSize: '16px' }}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          ))}
+        </aside>
+
+        {/* Main Content Area */}
+        <main style={{
+          flex: 1,
+          padding: '30px',
+          overflowY: 'auto',
+          background: dckNeonTheme.colors.bg,
+        }}>
+          {activeSideTab === 'scanner' && activeTab === 'explore' && (
+            <div>
+              {/* Scanner Header */}
+              <div style={{ marginBottom: '30px' }}>
+                <h1 style={{
+                  fontSize: '32px',
+                  fontWeight: '900',
+                  margin: '0 0 10px 0',
+                  background: `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+                }}>
+                  TOKEN SCANNER
+                </h1>
+                <p style={{
+                  color: dckNeonTheme.colors.textSecondary,
+                  fontSize: '16px',
+                  margin: 0,
+                }}>
+                  Analyze Solana tokens from brand new to established
+                </p>
+              </div>
+
+              {/* Token Input */}
+              <div style={{
+                background: dckNeonTheme.colors.bgCard,
+                borderRadius: '12px',
+                border: `1px solid ${dckNeonTheme.colors.border}`,
+                padding: '30px',
+                marginBottom: '30px',
+              }}>
+                <div style={{
+                  display: 'flex',
+                  gap: '15px',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}>
+                  <input
+                    type="text"
+                    placeholder="Enter Solana token mint address..."
+                    value={tokenAddress}
+                    onChange={(e) => setTokenAddress(e.target.value)}
+                    style={{
+                      flex: 1,
+                      minWidth: '300px',
+                      background: dckNeonTheme.colors.bgAccent,
+                      border: `1px solid ${dckNeonTheme.colors.border}`,
+                      borderRadius: '8px',
+                      color: dckNeonTheme.colors.textPrimary,
+                      padding: '15px 20px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = dckNeonTheme.colors.neonCyan;
+                      e.target.style.boxShadow = `0 0 0 3px ${dckNeonTheme.colors.neonCyan}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = dckNeonTheme.colors.border;
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                  <button
+                    onClick={handleAnalyzeToken}
+                    disabled={!tokenAddress || isLoading}
+                    style={{
+                      background: (!tokenAddress || isLoading) ? 
+                        dckNeonTheme.colors.bgAccent : 
+                        `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#FFFFFF',
+                      padding: '15px 30px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: (!tokenAddress || isLoading) ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: (!tokenAddress || isLoading) ? 
+                        'none' : 
+                        dckNeonTheme.colors.glowCyan,
+                    }}
+                  >
+                    {isLoading ? '🔍 Scanning...' : '🎯 SCAN TOKEN'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Results */}
+              {(tokenInfo || isLoading) && (
+                <div style={{
+                  display: 'grid',
+                  gap: '20px',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                }}>
+                  {/* Chart */}
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <DCKNeonChart
+                      data={priceData}
+                      tokenSymbol={tokenInfo?.symbol || 'TOKEN'}
+                      isLoading={isLoading}
+                      chartType="area"
+                    />
+                  </div>
+
+                  {/* Token Info Cards */}
+                  {tokenInfo && !isLoading && (
+                    <>
+                      <div style={{
+                        background: dckNeonTheme.colors.bgCard,
+                        borderRadius: '12px',
+                        border: `1px solid ${dckNeonTheme.colors.border}`,
+                        padding: '20px',
+                      }}>
+                        <h3 style={{
+                          margin: '0 0 15px 0',
+                          color: dckNeonTheme.colors.neonCyan,
+                          textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+                        }}>
+                          {tokenInfo.symbol} - {tokenInfo.name}
+                        </h3>
+                        <div style={{ display: 'grid', gap: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Price:</span>
+                            <span style={{ 
+                              color: dckNeonTheme.colors.textPrimary,
+                              fontWeight: 'bold',
+                            }}>
+                              ${tokenInfo.price.toFixed(8)}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>24h Change:</span>
+                            <span style={{ 
+                              color: tokenInfo.priceChange24h >= 0 ? 
+                                dckNeonTheme.colors.success : 
+                                dckNeonTheme.colors.danger,
+                              fontWeight: 'bold',
+                            }}>
+                              {tokenInfo.priceChange24h >= 0 ? '+' : ''}
+                              {tokenInfo.priceChange24h.toFixed(2)}%
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Market Cap:</span>
+                            <span style={{ 
+                              color: dckNeonTheme.colors.textPrimary,
+                              fontWeight: 'bold',
+                            }}>
+                              ${formatNumber(tokenInfo.marketCap)}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Holders:</span>
+                            <span style={{ 
+                              color: dckNeonTheme.colors.textPrimary,
+                              fontWeight: 'bold',
+                            }}>
+                              {formatNumber(tokenInfo.holders)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: dckNeonTheme.colors.bgCard,
+                        borderRadius: '12px',
+                        border: `1px solid ${dckNeonTheme.colors.border}`,
+                        padding: '20px',
+                      }}>
+                        <h3 style={{
+                          margin: '0 0 15px 0',
+                          color: dckNeonTheme.colors.neonPink,
+                          textShadow: dckNeonTheme.textEffects.pinkGlow.textShadow,
+                        }}>
+                          Security Analysis
+                        </h3>
+                        <div style={{ display: 'grid', gap: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Mint Authority:</span>
+                            <span style={{ 
+                              color: tokenInfo.mintAuthority ? 
+                                dckNeonTheme.colors.danger : 
+                                dckNeonTheme.colors.success,
+                              fontWeight: 'bold',
+                            }}>
+                              {tokenInfo.mintAuthority ? '⚠️ Active' : '✅ Renounced'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Freeze Authority:</span>
+                            <span style={{ 
+                              color: tokenInfo.freezeAuthority ? 
+                                dckNeonTheme.colors.danger : 
+                                dckNeonTheme.colors.success,
+                              fontWeight: 'bold',
+                            }}>
+                              {tokenInfo.freezeAuthority ? '⚠️ Can Freeze' : '✅ No Freeze'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Liquidity:</span>
+                            <span style={{ 
+                              color: tokenInfo.liquidityLocked ? 
+                                dckNeonTheme.colors.success : 
+                                dckNeonTheme.colors.danger,
+                              fontWeight: 'bold',
+                            }}>
+                              {tokenInfo.liquidityLocked ? '🔒 Locked' : '⚠️ Unlocked'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: dckNeonTheme.colors.textSecondary }}>Age:</span>
+                            <span style={{ 
+                              color: tokenInfo.age < 3600 ? 
+                                dckNeonTheme.colors.danger : 
+                                dckNeonTheme.colors.success,
+                              fontWeight: 'bold',
+                            }}>
+                              {tokenInfo.age < 3600 ? '🔥 NEW' : '📈 Established'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Other Side Tab Content */}
+          {activeSideTab === 'sniper' && (
+            <div style={{
+              background: dckNeonTheme.colors.bgCard,
+              borderRadius: '12px',
+              border: `1px solid ${dckNeonTheme.colors.border}`,
+              padding: '40px',
+              textAlign: 'center',
+            }}>
+              <h2 style={{
+                color: dckNeonTheme.colors.neonCyan,
+                textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+              }}>
+                🏹 SNIPER BOT
+              </h2>
+              <p style={{ color: dckNeonTheme.colors.textSecondary }}>
+                Automated token sniping coming soon...
+              </p>
+            </div>
+          )}
+
+          {activeSideTab === 'nfts' && (
+            <div style={{
+              background: dckNeonTheme.colors.bgCard,
+              borderRadius: '12px',
+              border: `1px solid ${dckNeonTheme.colors.border}`,
+              padding: '40px',
+              textAlign: 'center',
+            }}>
+              <h2 style={{
+                color: dckNeonTheme.colors.neonPink,
+                textShadow: dckNeonTheme.textEffects.pinkGlow.textShadow,
+              }}>
+                🖼️ NFT SCANNER
+              </h2>
+              <p style={{ color: dckNeonTheme.colors.textSecondary }}>
+                NFT collection analysis coming soon...
+              </p>
+            </div>
+          )}
+
+          {activeSideTab === 'wallets' && activeTab === 'wallets' && (
+            <div>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '900',
+                margin: '0 0 30px 0',
+                background: `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+              }}>
+                WALLET MANAGER
+              </h1>
+              
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {wallets.map((wallet) => (
+                  <div
+                    key={wallet.id}
+                    style={{
+                      background: wallet.isActive ? 
+                        `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}15, ${dckNeonTheme.colors.neonBlue}15)` :
+                        dckNeonTheme.colors.bgCard,
+                      borderRadius: '12px',
+                      border: wallet.isActive ? 
+                        `1px solid ${dckNeonTheme.colors.neonCyan}` :
+                        `1px solid ${dckNeonTheme.colors.border}`,
+                      padding: '20px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{
+                          margin: '0 0 8px 0',
+                          color: wallet.isActive ? dckNeonTheme.colors.neonCyan : dckNeonTheme.colors.textPrimary,
+                          textShadow: wallet.isActive ? dckNeonTheme.textEffects.neonGlow.textShadow : 'none',
+                        }}>
+                          {wallet.name}
+                        </h3>
+                        <p style={{
+                          margin: '0 0 8px 0',
+                          color: dckNeonTheme.colors.textSecondary,
+                          fontFamily: 'monospace',
+                        }}>
+                          {wallet.address}
+                        </p>
+                        <p style={{
+                          margin: 0,
+                          color: dckNeonTheme.colors.textPrimary,
+                          fontWeight: 'bold',
+                        }}>
+                          {wallet.balance.toFixed(2)} SOL
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button style={{
+                          background: dckNeonTheme.colors.bgAccent,
+                          border: `1px solid ${dckNeonTheme.colors.border}`,
+                          borderRadius: '6px',
+                          color: dckNeonTheme.colors.textPrimary,
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                        }}>
+                          📋 Copy
+                        </button>
+                        {wallet.isActive && (
+                          <span style={{
+                            background: dckNeonTheme.colors.success,
+                            color: '#000',
+                            borderRadius: '6px',
+                            padding: '8px 12px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                          }}>
+                            Active
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <button style={{
+                  background: `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#FFFFFF',
+                  padding: '20px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: dckNeonTheme.colors.glowCyan,
+                }}>
+                  ➕ Generate New Wallet
+                </button>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Bottom Navigation */}
+      <footer style={{
+        background: `${dckNeonTheme.colors.bgCard}CC`,
+        backdropFilter: 'blur(20px)',
+        borderTop: `1px solid ${dckNeonTheme.colors.border}`,
+        padding: '15px 0',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '0',
+          maxWidth: '600px',
+          margin: '0 auto',
+        }}>
+          {bottomTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                color: activeTab === tab.id ? 
+                  dckNeonTheme.colors.neonCyan : 
+                  dckNeonTheme.colors.textSecondary,
+                padding: '12px 8px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                textShadow: activeTab === tab.id ? 
+                  dckNeonTheme.textEffects.neonGlow.textShadow : 
+                  'none',
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </footer>
+    </div>
+  );
+}
+          <div>
+            {/* Scanner Header */}
+            <div style={{ marginBottom: '30px' }}>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '900',
+                margin: '0 0 10px 0',
+                background: `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+              }}>
+                TOKEN SCANNER
+              </h1>
+              <p style={{
+                color: dckNeonTheme.colors.textSecondary,
+                fontSize: '16px',
+                margin: 0,
+              }}>
+                Analyze Solana tokens from brand new to established
+              </p>
+            </div>
+
+            {/* Token Input */}
+            <div style={{
+              background: dckNeonTheme.colors.bgCard,
+              borderRadius: '12px',
+              border: `1px solid ${dckNeonTheme.colors.border}`,
+              padding: '30px',
+              marginBottom: '30px',
+            }}>
+              <div style={{
+                display: 'flex',
+                gap: '15px',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}>
+                <input
+                  type="text"
+                  placeholder="Enter Solana token mint address..."
+                  value={tokenAddress}
+                  onChange={(e) => setTokenAddress(e.target.value)}
+                  style={{
+                    flex: 1,
+                    minWidth: '300px',
+                    background: dckNeonTheme.colors.bgAccent,
+                    border: `1px solid ${dckNeonTheme.colors.border}`,
+                    borderRadius: '8px',
+                    color: dckNeonTheme.colors.textPrimary,
+                    padding: '15px 20px',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = dckNeonTheme.colors.neonCyan;
+                    e.target.style.boxShadow = `0 0 0 3px ${dckNeonTheme.colors.neonCyan}20`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = dckNeonTheme.colors.border;
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+                <button
+                  onClick={handleAnalyzeToken}
+                  disabled={!tokenAddress || isLoading}
+                  style={{
+                    background: (!tokenAddress || isLoading) ? 
+                      dckNeonTheme.colors.bgAccent : 
+                      `linear-gradient(135deg, ${dckNeonTheme.colors.neonCyan}, ${dckNeonTheme.colors.neonBlue})`,
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#FFFFFF',
+                    padding: '15px 30px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: (!tokenAddress || isLoading) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: (!tokenAddress || isLoading) ? 
+                      'none' : 
+                      dckNeonTheme.colors.glowCyan,
+                  }}
+                >
+                  {isLoading ? '🔍 Scanning...' : '🎯 SCAN TOKEN'}
+                </button>
+              </div>
+            </div>
+
+            {/* Results */}
+            {(tokenInfo || isLoading) && (
+              <div style={{
+                display: 'grid',
+                gap: '20px',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+              }}>
+                {/* Chart */}
+                <div style={{ gridColumn: 'span 2' }}>
+                  <DCKNeonChart
+                    data={priceData}
+                    tokenSymbol={tokenInfo?.symbol || 'TOKEN'}
+                    isLoading={isLoading}
+                    chartType="area"
+                  />
+                </div>
+
+                {/* Token Info Cards */}
+                {tokenInfo && !isLoading && (
+                  <>
+                    <div style={{
+                      background: dckNeonTheme.colors.bgCard,
+                      borderRadius: '12px',
+                      border: `1px solid ${dckNeonTheme.colors.border}`,
+                      padding: '20px',
+                    }}>
+                      <h3 style={{
+                        margin: '0 0 15px 0',
+                        color: dckNeonTheme.colors.neonCyan,
+                        textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+                      }}>
+                        {tokenInfo.symbol} - {tokenInfo.name}
+                      </h3>
+                      <div style={{ display: 'grid', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Price:</span>
+                          <span style={{ 
+                            color: dckNeonTheme.colors.textPrimary,
+                            fontWeight: 'bold',
+                          }}>
+                            ${tokenInfo.price.toFixed(8)}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>24h Change:</span>
+                          <span style={{ 
+                            color: tokenInfo.priceChange24h >= 0 ? 
+                              dckNeonTheme.colors.success : 
+                              dckNeonTheme.colors.danger,
+                            fontWeight: 'bold',
+                          }}>
+                            {tokenInfo.priceChange24h >= 0 ? '+' : ''}
+                            {tokenInfo.priceChange24h.toFixed(2)}%
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Market Cap:</span>
+                          <span style={{ 
+                            color: dckNeonTheme.colors.textPrimary,
+                            fontWeight: 'bold',
+                          }}>
+                            ${formatNumber(tokenInfo.marketCap)}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Holders:</span>
+                          <span style={{ 
+                            color: dckNeonTheme.colors.textPrimary,
+                            fontWeight: 'bold',
+                          }}>
+                            {formatNumber(tokenInfo.holders)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: dckNeonTheme.colors.bgCard,
+                      borderRadius: '12px',
+                      border: `1px solid ${dckNeonTheme.colors.border}`,
+                      padding: '20px',
+                    }}>
+                      <h3 style={{
+                        margin: '0 0 15px 0',
+                        color: dckNeonTheme.colors.neonPink,
+                        textShadow: dckNeonTheme.textEffects.pinkGlow.textShadow,
+                      }}>
+                        Security Analysis
+                      </h3>
+                      <div style={{ display: 'grid', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Mint Authority:</span>
+                          <span style={{ 
+                            color: tokenInfo.mintAuthority ? 
+                              dckNeonTheme.colors.danger : 
+                              dckNeonTheme.colors.success,
+                            fontWeight: 'bold',
+                          }}>
+                            {tokenInfo.mintAuthority ? '⚠️ Active' : '✅ Renounced'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Freeze Authority:</span>
+                          <span style={{ 
+                            color: tokenInfo.freezeAuthority ? 
+                              dckNeonTheme.colors.danger : 
+                              dckNeonTheme.colors.success,
+                            fontWeight: 'bold',
+                          }}>
+                            {tokenInfo.freezeAuthority ? '⚠️ Can Freeze' : '✅ No Freeze'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Liquidity:</span>
+                          <span style={{ 
+                            color: tokenInfo.liquidityLocked ? 
+                              dckNeonTheme.colors.success : 
+                              dckNeonTheme.colors.danger,
+                            fontWeight: 'bold',
+                          }}>
+                            {tokenInfo.liquidityLocked ? '🔒 Locked' : '⚠️ Unlocked'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: dckNeonTheme.colors.textSecondary }}>Age:</span>
+                          <span style={{ 
+                            color: tokenInfo.age < 3600 ? 
+                              dckNeonTheme.colors.danger : 
+                              dckNeonTheme.colors.success,
+                            fontWeight: 'bold',
+                          }}>
+                            {tokenInfo.age < 3600 ? '🔥 NEW' : '📈 Established'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'live' && (
+          <div style={{
+            background: dckNeonTheme.colors.bgCard,
+            borderRadius: '12px',
+            border: `1px solid ${dckNeonTheme.colors.border}`,
+            padding: '40px',
+            textAlign: 'center',
+          }}>
+            <h2 style={{
+              color: dckNeonTheme.colors.neonCyan,
+              textShadow: dckNeonTheme.textEffects.neonGlow.textShadow,
+            }}>
+              🚀 LIVE FEED
+            </h2>
+            <p style={{ color: dckNeonTheme.colors.textSecondary }}>
+              Real-time token monitoring coming soon...
+            </p>
+          </div>
+        )}
+
+        {activeTab === 'portfolio' && (
+          <div style={{
+            background: dckNeonTheme.colors.bgCard,
+            borderRadius: '12px',
+            border: `1px solid ${dckNeonTheme.colors.border}`,
+            padding: '40px',
+            textAlign: 'center',
+          }}>
+            <h2 style={{
+              color: dckNeonTheme.colors.neonPink,
+              textShadow: dckNeonTheme.textEffects.pinkGlow.textShadow,
+            }}>
+              💰 PORTFOLIO
+            </h2>
+            <p style={{ color: dckNeonTheme.colors.textSecondary }}>
+              Portfolio tracking coming soon...
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <DCKDashboard />
+  </React.StrictMode>
+);

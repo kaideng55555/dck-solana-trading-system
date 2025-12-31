@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DCK Backend Connection Test</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #0B0B0F; 
+            color: #00F5FF; 
+            padding: 20px; 
+        }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #1a4d2e; border: 1px solid #00ff00; }
+        .error { background: #4d1a1a; border: 1px solid #ff0000; }
+        .event { 
+            background: #161621; 
+            padding: 8px; 
+            margin: 5px 0; 
+            border-left: 3px solid #FF1493;
+            font-size: 12px;
+        }
+        h1 { color: #FF1493; }
+        h2 { color: #00F5FF; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🎯 DCK Backend Connection Test</h1>
+    
+    <h2>Backend API</h2>
+    <div id="api-status">Testing...</div>
+    
+    <h2>WebSocket Feed</h2>
+    <div id="ws-status">Connecting...</div>
+    
+    <h2>Recent Events (Live)</h2>
+    <div id="events"></div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+        const WS_URL = 'ws://127.0.0.1:8000/ws';
+
+        // Test HTTP API
+        async function testAPI() {
+            try {
+                const response = await fetch(`${API_BASE}/events?limit=3`);
+                const data = await response.json();
+                document.getElementById('api-status').innerHTML = 
+                    `<div class="status success">✅ API Connected - ${data.items.length} events received</div>`;
+                
+                // Show recent events
+                data.items.forEach(evt => {
+                    const div = document.createElement('div');
+                    div.className = 'event';
+                    div.textContent = `[${evt.ts}] ${evt.signature} ${evt.mint || 'no mint yet'}`;
+                    document.getElementById('events').appendChild(div);
+                });
+            } catch (err) {
+                document.getElementById('api-status').innerHTML = 
+                    `<div class="status error">❌ API Error: ${err.message}</div>`;
+            }
+        }
+
+        // Test WebSocket
+        function testWebSocket() {
+            const ws = new WebSocket(WS_URL);
+            
+            ws.onopen = () => {
+                document.getElementById('ws-status').innerHTML = 
+                    `<div class="status success">✅ WebSocket Connected</div>`;
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const div = document.createElement('div');
+                div.className = 'event';
+                div.textContent = `[LIVE] ${data.signature || data.type || JSON.stringify(data)}`;
+                const container = document.getElementById('events');
+                container.insertBefore(div, container.firstChild);
+                
+                // Keep only last 10 events
+                while (container.children.length > 10) {
+                    container.removeChild(container.lastChild);
+                }
+            };
+            
+            ws.onerror = (err) => {
+                document.getElementById('ws-status').innerHTML = 
+                    `<div class="status error">❌ WebSocket Error</div>`;
+            };
+            
+            ws.onclose = () => {
+                document.getElementById('ws-status').innerHTML = 
+                    `<div class="status error">⚠️ WebSocket Disconnected - Reconnecting in 5s...</div>`;
+                setTimeout(testWebSocket, 5000);
+            };
+        }
+
+        // Run tests
+        testAPI();
+        testWebSocket();
+        
+        // Refresh API stats every 10 seconds
+        setInterval(() => {
+            fetch(`${API_BASE}/events?limit=1`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.items[0]) {
+                        const totalEvents = d.items[0].id;
+                        document.getElementById('api-status').innerHTML = 
+                            `<div class="status success">✅ API Connected - Total Events: ${totalEvents}</div>`;
+                    }
+                });
+        }, 10000);
+    </script>
+</body>
+</html>

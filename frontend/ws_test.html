@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>WebSocket Test - DCK Tools Watcher</title>
+    <style>
+        body {
+            background: #0B0B0F;
+            color: #00F5FF;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        h1 {
+            color: #FF1493;
+            text-shadow: 0 0 10px #FF1493;
+        }
+        #log {
+            background: #161621;
+            border: 1px solid #00F5FF;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .timestamp {
+            color: #8A2BE2;
+        }
+        .msg {
+            color: #00FF55;
+        }
+        .error {
+            color: #FF1493;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 DCK Tools Watcher - WebSocket Test</h1>
+    <p>Connected to: <strong>ws://127.0.0.1:8000/ws</strong></p>
+    <pre id="log"></pre>
+    
+    <script>
+        const logEl = document.getElementById('log');
+        const log = (...args) => {
+            const timestamp = new Date().toLocaleTimeString();
+            const line = `[${timestamp}] ${args.join(' ')}\n`;
+            logEl.textContent += line;
+            logEl.scrollTop = logEl.scrollHeight;
+        };
+        
+        log('🔌 Connecting to WebSocket...');
+        const ws = new WebSocket('ws://127.0.0.1:8000/ws');
+        
+        ws.onopen = () => {
+            log('✅ WS connection opened');
+        };
+        
+        ws.onmessage = (e) => {
+            log('📨 MSG:', e.data);
+            try {
+                const data = JSON.parse(e.data);
+                if (data.signature) {
+                    log('   🎯 TX:', data.signature);
+                }
+            } catch (err) {
+                // Not JSON, that's ok
+            }
+        };
+        
+        ws.onerror = (e) => {
+            log('❌ ERR:', e.message || 'Connection error');
+        };
+        
+        ws.onclose = () => {
+            log('🔌 WS connection closed');
+        };
+    </script>
+</body>
+</html>

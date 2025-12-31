@@ -1,0 +1,86 @@
+/**
+ * hide-xie.css
+ * Hides all XIE (risk scoring) UI elements when XIE_MODE=off
+ * Applied globally to keep dashboard focused on pure trading metrics
+ */
+
+/* Hide any element with data-xie attribute */
+[data-xie],
+[data-xie-score],
+[data-risk-score] {
+  display: none !important;
+}
+
+/* Hide XIE-specific chips and badges */
+.xie-chip,
+.xie-badge,
+.xie-indicator,
+.risk-chip,
+.risk-badge,
+.risk-indicator,
+.safety-chip,
+.safety-badge {
+  display: none !important;
+}
+
+/* Hide XIE filter UI components */
+.xie-filter,
+.xie-filters,
+.risk-filter,
+.risk-filters,
+.safety-filter,
+.safety-filters {
+  display: none !important;
+}
+
+/* Hide specific filter buttons */
+button[data-filter="lpSafe"],
+button[data-filter="rugSafe"],
+button[data-filter="authoritySafe"],
+button[data-filter="mintSafe"],
+button[data-filter="freezeSafe"] {
+  display: none !important;
+}
+
+/* Hide risk score displays */
+.risk-score,
+.risk-score-display,
+.xie-score,
+.xie-score-display,
+.authority-risk,
+.authority-risk-display {
+  display: none !important;
+}
+
+/* Hide safety status indicators */
+.lp-safe-indicator,
+.rug-safe-indicator,
+.authority-safe-indicator,
+.mint-safe-indicator,
+.freeze-safe-indicator {
+  display: none !important;
+}
+
+/* Hide XIE-related tooltips and popovers */
+.xie-tooltip,
+.risk-tooltip,
+.safety-tooltip {
+  display: none !important;
+}
+
+/* Hide XIE columns in tables */
+th.xie-column,
+td.xie-column,
+th.risk-column,
+td.risk-column,
+th.safety-column,
+td.safety-column {
+  display: none !important;
+}
+
+/* Hide XIE sections in cards */
+.xie-section,
+.risk-section,
+.safety-section {
+  display: none !important;
+}
