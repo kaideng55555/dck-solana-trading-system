@@ -5,3 +5,14 @@ node_modules/
 
 # vite
 **/.vite/
+# env
+.env
+**/.env
+
+# rust/cargo caches
+.cargo/
+**/.cargo/
+
+# logs + mac
+*.log
+.DS_Store
