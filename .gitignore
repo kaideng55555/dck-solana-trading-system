@@ -1,18 +1,9 @@
-
-# deps
 node_modules/
-**/node_modules/
-
-# vite
-**/.vite/
-# env
+dist/
 .env
-**/.env
-
-# rust/cargo caches
-.cargo/
-**/.cargo/
-
-# logs + mac
-*.log
+.env.*
+.venv/
+__pycache__/
+*.pyc
+target/
 .DS_Store
